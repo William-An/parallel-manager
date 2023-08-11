@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["parallel_manager"]
+
+[project]
+name = "parallel_manager"
+version = "0.0.1"
+authors = [
+  { name="William An", email="china_aisa@live.com" },
+]
+description = "A simple shell command manager. Used for running parallel simulations."
+readme = "README.md"
+requires-python = ">=3.8.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/William-An/parallel-manager"
+"Bug Tracker" = "https://github.com/William-An/parallel-manager/issues"

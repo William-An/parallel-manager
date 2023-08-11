@@ -13,8 +13,8 @@ from collections import Counter
 from typing import List
 from abc import abstractmethod
 import asyncio
-from packet import ShellRequestPacket, RequestStatus, ShellResponsePacket
-from packet import RequestQueue, ResponseQueue
+from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket
+from .packet import RequestQueue, ResponseQueue
 
 class BaseWorker:
     def __init__(self, name: str, logger: logging.Logger, 

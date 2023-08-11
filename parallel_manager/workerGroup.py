@@ -9,11 +9,11 @@ Description:	Worker group to manage request handling and worker management
 
 from __future__ import annotations
 from abc import abstractmethod
-from worker import BaseWorker, ShellWorker
-from worker import WorkerList
+from .worker import BaseWorker, ShellWorker
+from .worker import WorkerList
 from typing import List, Callable
-from packet import BaseRequestPacket, RequestStatus, BaseResponsePacket
-from packet import RequestQueue, ResponseQueue
+from .packet import BaseRequestPacket, RequestStatus, BaseResponsePacket
+from .packet import RequestQueue, ResponseQueue
 import asyncio
 import logging
 

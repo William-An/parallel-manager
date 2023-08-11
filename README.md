@@ -1,4 +1,4 @@
-# parallel-manager
+# parallel_manager
 
 A simple shell command manager. Used for running parallel simulations.
 

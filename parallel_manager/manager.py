@@ -1,6 +1,6 @@
 from __future__ import annotations
-from packet import *
-from workerGroup import *
+from .packet import *
+from .workerGroup import *
 from typing import Dict
 import logging
 

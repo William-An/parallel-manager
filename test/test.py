@@ -1,5 +1,5 @@
-from manager import BaseShellManager
-from workerGroup import ShellWorkerGroup
+from parallel_manager.manager import BaseShellManager
+from parallel_manager.workerGroup import ShellWorkerGroup
 import logging
 import asyncio
 import time
