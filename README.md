@@ -15,6 +15,11 @@ pip install parallel_manager
 To run the manager, we will need to wrap the manager initialization and request creations all in a async function like this:
 
 ```python
+from parallel_manager.manager import BaseShellManager
+from parallel_manager.workerGroup import ShellWorkerGroup
+import logging
+import asyncio
+
 async def Main():
     # Init the manager
     simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
