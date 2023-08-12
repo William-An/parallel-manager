@@ -1,5 +1,7 @@
 # parallel_manager
 
+[![Python test](https://github.com/William-An/parallel-manager/actions/workflows/python-package.yml/badge.svg)](https://github.com/William-An/parallel-manager/actions/workflows/python-package.yml)
+
 A simple shell command manager. Used for running parallel simulations.
 
 ## Structure
