@@ -5,6 +5,10 @@ import asyncio
 import time
 
 async def Main():
+    """
+    This example shows how to create a shell worker manager,
+    submit tasks to them, and wait for the worker to process
+    """
     # Initialize workers
     simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
                                         logging.getLogger(),

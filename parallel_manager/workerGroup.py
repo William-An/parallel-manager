@@ -16,7 +16,7 @@ from .packet import BaseRequestPacket, RequestStatus, BaseResponsePacket
 from .packet import RequestQueue, ResponseQueue
 import asyncio
 import logging
-
+import os
 
 # Response handler function type and default
 async def _default_response_handler(workgroup: BaseWorkerGroup,
@@ -149,6 +149,10 @@ class ShellWorkerGroup(BaseWorkerGroup):
         super().__init__(name, logger, num_workers, max_requests,
                          response_handler)
         self.log_folder = log_folder
+
+        # Create log directory if not existed
+        if not os.path.exists(log_folder):
+            os.mkdir(log_folder)
 
     def get_worker(self, name: str) -> ShellWorker:
         return ShellWorker(f"{self.name}-{name}",
