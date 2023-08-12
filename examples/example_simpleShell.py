@@ -19,7 +19,7 @@ async def Main():
     await simpleShellManager.init()
 
     # Add requests
-    for i in range(10):
+    for i in range(100):
         print(i)
         simpleShellManager.add_shell_request(f"echoing loop-{i}", f"echo {i}")
 
