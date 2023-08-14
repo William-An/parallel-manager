@@ -10,13 +10,13 @@ testpaths = "tests doc"
 
 [project]
 name = "parallel_manager"
-version = "0.0.2"
+version = "0.1.0"
 authors = [
   { name="William An", email="china_aisa@live.com" },
 ]
 description = "A simple shell command manager. Used for running parallel simulations."
 readme = "README.md"
-requires-python = ">=3.8.9"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
