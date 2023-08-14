@@ -71,7 +71,7 @@ Full example is at [here](./examples/example_simpleShell.py)
 3. [ ] Timeout support
 4. [ ] Status monitor, progress monitor
 5. [ ] Dump failed task/able to rerun
-6. [ ] Dump unfinished tasks when script terminates
+6. [x] Dump unfinished tasks when script terminates
 
 ### Long-term todos
 
