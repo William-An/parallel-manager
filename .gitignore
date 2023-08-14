@@ -168,6 +168,10 @@ cython_debug/
 
 # Test
 log/
+log*/
 *.tmp
 *.log
 *.out
+
+# parallel-manager specific
+*.save

@@ -13,7 +13,7 @@ from collections import Counter
 from typing import List
 from abc import abstractmethod
 import asyncio
-from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket
+from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket, BaseRequestPacket
 from .packet import RequestQueue, ResponseQueue
 
 class BaseWorker:
@@ -29,6 +29,7 @@ class BaseWorker:
         self.idle = True
         self.taskQueue = taskQueue
         self.responseQueue = responseQueue
+        self.current_request = None
 
         # Whether to suspend worker execution
         self.not_suspend = asyncio.Event()
@@ -57,6 +58,9 @@ class BaseWorker:
 
     def unsuspend(self):
         self.not_suspend.set()
+
+    def get_current_task(self) -> BaseRequestPacket:
+        return self.current_request
 
     async def done(self):
         """Worker is done when all tasks were
@@ -90,6 +94,7 @@ class ShellWorker(BaseWorker):
 
             # Get cmd description and cmd to launch
             request = await taskQueue.get()
+            self.current_request = request
             desc = request.desc
             cmd = request.cmd
             self.idle = False

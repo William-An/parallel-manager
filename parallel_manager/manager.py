@@ -25,6 +25,9 @@ class BaseManager:
         self.name = name
         self.default_name = ""
 
+        # Register callback to save pending tasks
+        atexit.register(self.save_pending)
+
         # TODO Create a async event loop to handle request
 
     async def init(self):
@@ -62,6 +65,16 @@ class BaseManager:
             self.workgroups[self.default_name].add_request(req)
         else:
             self.workgroups[workgroup_name].add_request(req)
+
+    def save_pending(self, prefix:str="") -> None:
+        prefix = f"{prefix}{self.name}-"
+        for wg in self.workgroups.values():
+            wg.save_pending(prefix)
+
+    def load_tasks(self, prefix:str="") -> None:
+        prefix = f"{prefix}{self.name}-"
+        for wg in self.workgroups.values():
+            wg.load_tasks(prefix)
 
 class BaseShellManager(BaseManager):
     def __init__(self, name: str) -> None:

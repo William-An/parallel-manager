@@ -12,10 +12,11 @@ from abc import abstractmethod
 from .worker import BaseWorker, ShellWorker
 from .worker import WorkerList
 from typing import List, Callable
-from .packet import BaseRequestPacket, RequestStatus, BaseResponsePacket
+from .packet import BaseRequestPacket, ShellRequestPacket, BaseResponsePacket, RequestStatus
 from .packet import RequestQueue, ResponseQueue
 import asyncio
 import logging
+import atexit
 import os
 
 # Response handler function type and default
@@ -143,6 +144,46 @@ class BaseWorkerGroup:
     
     def pending_responses_count(self) -> int:
         return self.responseQueue.qsize()
+    
+    def save_pending(self, prefix:str="") -> None:
+        """Save pending tasks currently in the queue
+        """
+        filename =  f"{prefix}{self.name}-pending-tasks.save"
+        
+        # iterate through the tasks queue and dump tasks not in finished state
+        with open(filename, "w") as fp:
+            # Dump tasks queue
+            while not self.taskQueue.empty():
+                element:BaseRequestPacket = self.taskQueue.get_nowait()
+                fp.write(element.serialize())
+                fp.write("\n")
+
+            # Dump not finished tasks in workers
+            for worker in self.workers:
+                curr_req = worker.get_current_task()
+                if curr_req and curr_req.status != RequestStatus.FINISHED:
+                    fp.write(curr_req.serialize())
+                    fp.write("\n")
+
+    def load_tasks(self, prefix:str="") -> None:
+        """Load tasks from file created by `save_pending`
+
+        Args:
+            prefix (str): worker group saved tasks filename prefix
+        """
+        filename =  f"{prefix}{self.name}-pending-tasks.save"
+        
+        # Load stuff from file
+        with open(filename) as fp:
+            for line in fp:
+                packet = self.deserialize_task(line)
+                self.add_request(packet)
+
+    @abstractmethod
+    def deserialize_task(self, string:str) -> BaseRequestPacket:
+        """Deserialize a line into worker group specific request packet
+        """
+        raise NotImplemented
 
 class ShellWorkerGroup(BaseWorkerGroup):
     def __init__(self, name: str, logger: logging.Logger, log_folder: str, num_workers: int, max_requests: int=-1, response_handler: ResponseHandlerFn=_default_response_handler) -> None:
@@ -160,6 +201,11 @@ class ShellWorkerGroup(BaseWorkerGroup):
                                        self.log_folder,
                                        self.taskQueue,
                                        self.responseQueue)
+    
+    def deserialize_task(self, string:str) -> ShellRequestPacket:
+        tmp = ShellRequestPacket.factory()
+        tmp.deserialize(string)
+        return tmp
 
 # Typing
 ResponseHandlerFn = Callable[[BaseWorkerGroup, ResponseQueue], None]
