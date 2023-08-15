@@ -43,6 +43,6 @@ jobs:
         pytest
     - name: Run example scripts
       run: |
-        for example in ./examples; do
+        for example in ./examples/*; do
           python $example
         done

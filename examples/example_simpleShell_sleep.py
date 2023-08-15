@@ -11,7 +11,6 @@ async def Main():
     """
     # Initialize workers
     simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                        logging.getLogger(),
                                         "./log",
                                         10)
     simpleShellManager = BaseShellManager("simpleShellManager")

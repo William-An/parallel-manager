@@ -4,23 +4,42 @@ import logging
 import asyncio
 import time
 
-async def Main():
+async def SavePending():
     """
-    This example shows how to create a shell worker manager,
-    submit tasks to them, and wait for the worker to process
+    This function will save pending tasks
     """
     # Initialize workers
     simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                        logging.getLogger(),
-                                        "./log_resume",
+                                        "./log",
+                                        10)
+    simpleShellManager = BaseShellManager("simpleShellManager")
+    simpleShellManager.add_workergroup("shell", simpleShellWorkergroup)
+    await simpleShellManager.init()
+
+    # We first add some running tasks
+    for i in range(10):
+        simpleShellManager.add_shell_request(f"sleeping-for-{i}-secs", f"sleep {i}")
+
+    # Sleep for 5.5 seconds and call save method
+    await asyncio.sleep(5.5)
+    simpleShellManager.save_pending(prefix=f"./log/")
+
+async def LoadTasks():
+    """This function will load saved tasks from file
+    """
+    simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
+                                        "./log",
                                         10)
     simpleShellManager = BaseShellManager("simpleShellManager")
     simpleShellManager.add_workergroup("shell", simpleShellWorkergroup)
     await simpleShellManager.init()
 
     # Load from save file
-    simpleShellManager.load_tasks()
+    simpleShellManager.load_tasks(prefix=f"./log/")
 
     # Resume tasks
     await simpleShellManager.done()
-asyncio.run(Main())
+
+logging.basicConfig(level=logging.INFO)
+asyncio.run(SavePending())
+asyncio.run(LoadTasks())
