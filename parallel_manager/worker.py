@@ -28,7 +28,7 @@ class BaseWorker:
         self.idle = True
         self.taskQueue = taskQueue
         self.responseQueue = responseQueue
-        self.current_request = None
+        self.current_request: BaseRequestPacket = None
         self.raw_logger = logging.getLogger(__name__)
         self.logger = LogAdapter(self.raw_logger, {"name": name})
         self.logger.debug(f"[-] Creating worker")
@@ -42,12 +42,19 @@ class BaseWorker:
               responseQueue: ResponseQueue):
         pass
 
+
     async def init(self):
         self.taskHandle = asyncio.create_task(
         self._work(self.taskQueue, self.responseQueue), name=self.name)
 
+    def kill(self):
+        """Stop worker ungracefully
+           Use for program termination/abort
+        """
+        self.taskHandle.cancel()
+
     async def stop(self):
-        """Wrapper function to stop worker
+        """Wrapper function to stop worker gracefully
         """
         self.taskHandle.cancel()
         await asyncio.gather(self.taskHandle, return_exceptions=True)
@@ -79,6 +86,12 @@ class ShellWorker(BaseWorker):
         super().__init__(name, taskQueue, responseQueue)
         self.log_folder = log_folder
         self.logger.debug(f"[-] Log folder set to {log_folder}")
+        self.current_proc = None
+
+    def kill(self):
+        if self.current_proc and self.current_proc.returncode == None:
+            # Current process have not terminate
+            self.current_proc.kill()
 
     async def _work(self, taskQueue: RequestQueue, 
                     responseQueue: ResponseQueue):
@@ -115,6 +128,7 @@ class ShellWorker(BaseWorker):
             # Launch in subprocess
             start_time = datetime.now()
             proc = await asyncio.create_subprocess_shell(cmd, stdout=logout.fileno(), stderr=logerr.fileno())
+            self.current_proc = proc
             request.status = RequestStatus.RUNNING
 
             # Log command

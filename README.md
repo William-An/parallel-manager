@@ -72,7 +72,7 @@ Full example is at [here](./examples/example_simpleShell.py)
 4. [ ] Status monitor, progress monitor
 5. [ ] Dump failed task/able to rerun
 6. [x] Dump unfinished tasks when script terminates
-7. [ ] Kill ongoing shells when program abort (`atexit`)
+7. [x] Kill ongoing shells when program abort (`atexit`)
 
 ### Long-term todos
 

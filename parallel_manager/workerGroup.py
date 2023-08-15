@@ -87,7 +87,7 @@ class BaseWorkerGroup:
             self.workers.append(worker)
             await worker.init()
             
-    def decrement_workers(self, num: int):
+    async def decrement_workers(self, num: int):
         # Remove from end of worker list
         num_existing_workers = len(self.workers)
         if num > num_existing_workers:
@@ -109,8 +109,14 @@ class BaseWorkerGroup:
         # the workgroup
         for i in range(num):
             worker = self.workers[-(i + 1)]
-            worker.stop()
+            await worker.stop()
             self.workers.remove(worker)
+
+    def killall(self):
+        """Kill all workers
+        """
+        for worker in self.workers:
+            worker.kill()
 
     def add_request(self, req: BaseRequestPacket) -> int:
         # Make sure the request was put into the same loop

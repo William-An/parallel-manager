@@ -29,8 +29,9 @@ class BaseManager:
         self.logger = LogAdapter(self.raw_logger, {"name": name})
         self.logger.debug(f"[-] Creating manager")
 
-        # Register callback to save pending tasks
+        # Register callback to save pending tasks and kill all workergroups
         atexit.register(self.save_pending)
+        atexit.register(self.killall)
 
         # TODO Create a async event loop to handle request
 
@@ -81,6 +82,10 @@ class BaseManager:
         prefix = f"{prefix}{self.name}-"
         for wg in self.workgroups.values():
             wg.load_tasks(prefix)
+
+    def killall(self) -> None:
+        for wg in self.workgroups.values():
+            wg.killall()
 
 class BaseShellManager(BaseManager):
     def __init__(self, name: str) -> None:

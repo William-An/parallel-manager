@@ -23,6 +23,7 @@ async def SavePending():
     # Sleep for 5.5 seconds and call save method
     await asyncio.sleep(5.5)
     simpleShellManager.save_pending(prefix=f"./log/")
+    simpleShellManager.killall()
 
 async def LoadTasks():
     """This function will load saved tasks from file
