@@ -74,6 +74,7 @@ class ShellRequestPacket(BaseRequestPacket):
 class ShellResponsePacket(BaseResponsePacket):
     def __init__(self, req: ShellRequestPacket, retcode: int, elapsed_secs: int) -> None:
         super().__init__(req)
+        self.req: ShellRequestPacket
         self.retcode = retcode
         self.elapsed_secs = elapsed_secs
 

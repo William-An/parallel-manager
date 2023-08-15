@@ -12,7 +12,7 @@ from abc import abstractmethod
 from .worker import BaseWorker, ShellWorker
 from .worker import WorkerList
 from typing import List, Callable
-from .packet import BaseRequestPacket, ShellRequestPacket, BaseResponsePacket, RequestStatus
+from .packet import BaseRequestPacket, ShellRequestPacket, BaseResponsePacket, ShellResponsePacket, RequestStatus
 from .packet import RequestQueue, ResponseQueue
 from .utils import LogAdapter
 from .stats import Statistics
@@ -33,6 +33,23 @@ async def _default_response_handler(workgroup: BaseWorkerGroup,
     # Default handler does nothing
     while True:
         await responseQueue.get()
+        responseQueue.task_done()
+
+async def save_failed_shell_request_handler(workgroup: ShellWorkerGroup,
+                              responseQueue: ResponseQueue):
+    filename = f"{workgroup.name}-failed-tasks.save"
+    fp = open(filename, "w")
+    while True:
+        resp: ShellResponsePacket = await responseQueue.get()
+
+        if resp.retcode != 0:
+            workgroup.logger.info(f"[-] {workgroup.name}: saving failed request {resp.req.desc}")
+            
+            # Save failed task
+            fp.write(resp.req.serialize())
+            fp.write("\n")
+            fp.flush()
+
         responseQueue.task_done()
 
 class BaseWorkerGroup:
@@ -79,6 +96,7 @@ class BaseWorkerGroup:
 
     async def done(self):
         await asyncio.gather(*[worker.done() for worker in self.workers])
+        await self.responseQueue.join()
 
     async def increment_workers(self, num: int):
         num_existing_workers = len(self.workers)
