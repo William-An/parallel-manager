@@ -15,13 +15,12 @@ from abc import abstractmethod
 import asyncio
 from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket, BaseRequestPacket
 from .packet import RequestQueue, ResponseQueue
+from .utils import LogAdapter
 
 class BaseWorker:
-    def __init__(self, name: str, logger: logging.Logger, 
-                 taskQueue: RequestQueue, 
+    def __init__(self, name: str, taskQueue: RequestQueue, 
                  responseQueue: ResponseQueue) -> None:
         self.name = name
-        self.logger = logger
         self.create_time = datetime.now()
         self.start_time = None
         self.processed_tasks = 0
@@ -30,6 +29,9 @@ class BaseWorker:
         self.taskQueue = taskQueue
         self.responseQueue = responseQueue
         self.current_request = None
+        self.raw_logger = logging.getLogger(__name__)
+        self.logger = LogAdapter(self.raw_logger, {"name": name})
+        self.logger.debug(f"[-] Creating worker")
 
         # Whether to suspend worker execution
         self.not_suspend = asyncio.Event()
@@ -72,11 +74,11 @@ class BaseWorker:
 class ShellWorker(BaseWorker):
     """Shell command worker class
     """
-    def __init__(self, name: str, logger: logging.Logger, 
-                 log_folder: str, taskQueue: RequestQueue, 
+    def __init__(self, name: str, log_folder: str, taskQueue: RequestQueue, 
                  responseQueue: ResponseQueue) -> None:
-        super().__init__(name, logger, taskQueue, responseQueue)
+        super().__init__(name, taskQueue, responseQueue)
         self.log_folder = log_folder
+        self.logger.debug(f"[-] Log folder set to {log_folder}")
 
     async def _work(self, taskQueue: RequestQueue, 
                     responseQueue: ResponseQueue):

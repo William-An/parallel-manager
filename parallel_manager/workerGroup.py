@@ -14,6 +14,7 @@ from .worker import WorkerList
 from typing import List, Callable
 from .packet import BaseRequestPacket, ShellRequestPacket, BaseResponsePacket, RequestStatus
 from .packet import RequestQueue, ResponseQueue
+from .utils import LogAdapter
 import asyncio
 import logging
 import atexit
@@ -35,14 +36,15 @@ async def _default_response_handler(workgroup: BaseWorkerGroup,
         responseQueue.task_done()
 
 class BaseWorkerGroup:
-    def __init__(self, name: str, logger: logging.Logger, 
-                 num_workers: int, max_requests: int=-1, 
+    def __init__(self, name: str, num_workers: int, max_requests: int=-1, 
                  response_handler: ResponseHandlerFn=_default_response_handler) -> None:
         self.workers: WorkerList = []
         self.name = name
-        self.logger = logger
         self.num_workers = num_workers
         self.max_requests = max_requests
+        self.raw_logger = logging.getLogger(__name__)
+        self.logger = LogAdapter(self.raw_logger, {"name": name})
+        self.logger.debug(f"[-] Creating worker group")
 
         # Record response handler function
         self.resHandler = response_handler
@@ -149,6 +151,7 @@ class BaseWorkerGroup:
         """Save pending tasks currently in the queue
         """
         filename =  f"{prefix}{self.name}-pending-tasks.save"
+        self.logger.info(f"[-] {self.name}: saving pending tasks to {filename}")
         
         # iterate through the tasks queue and dump tasks not in finished state
         with open(filename, "w") as fp:
@@ -172,6 +175,7 @@ class BaseWorkerGroup:
             prefix (str): worker group saved tasks filename prefix
         """
         filename =  f"{prefix}{self.name}-pending-tasks.save"
+        self.logger.info(f"[-] {self.name}: loading tasks from {filename}")
         
         # Load stuff from file
         with open(filename) as fp:
@@ -186,8 +190,8 @@ class BaseWorkerGroup:
         raise NotImplemented
 
 class ShellWorkerGroup(BaseWorkerGroup):
-    def __init__(self, name: str, logger: logging.Logger, log_folder: str, num_workers: int, max_requests: int=-1, response_handler: ResponseHandlerFn=_default_response_handler) -> None:
-        super().__init__(name, logger, num_workers, max_requests,
+    def __init__(self, name: str, log_folder: str, num_workers: int, max_requests: int=-1, response_handler: ResponseHandlerFn=_default_response_handler) -> None:
+        super().__init__(name, num_workers, max_requests,
                          response_handler)
         self.log_folder = log_folder
 
@@ -197,7 +201,6 @@ class ShellWorkerGroup(BaseWorkerGroup):
 
     def get_worker(self, name: str) -> ShellWorker:
         return ShellWorker(f"{self.name}-{name}",
-                                       self.logger,
                                        self.log_folder,
                                        self.taskQueue,
                                        self.responseQueue)

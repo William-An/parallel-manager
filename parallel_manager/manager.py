@@ -1,6 +1,7 @@
 from __future__ import annotations
 from .packet import *
 from .workerGroup import *
+from .utils import LogAdapter
 from typing import Dict
 import logging
 
@@ -24,6 +25,9 @@ class BaseManager:
         self.workgroups: Dict[str, BaseWorkerGroup] = dict()
         self.name = name
         self.default_name = ""
+        self.raw_logger = logging.getLogger(__name__)
+        self.logger = LogAdapter(self.raw_logger, {"name": name})
+        self.logger.debug(f"[-] Creating manager")
 
         # Register callback to save pending tasks
         atexit.register(self.save_pending)
@@ -56,11 +60,13 @@ class BaseManager:
             if self.workgroups.get(name):
                 raise BaseWorkerGroupCollideError(self, name, self.workgroups[name], workgroup)
             else:
+                self.logger.debug(f"[-] Adding worker group: {name}")
                 self.workgroups[name] = workgroup
 
         self.default_name = name
 
     def add_request(self, req: BaseRequestPacket, workgroup_name: str="Default"):
+        self.logger.debug(f"[-] Adding request: {req}")
         if workgroup_name.lower() == "default":
             self.workgroups[self.default_name].add_request(req)
         else:
