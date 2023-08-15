@@ -91,7 +91,11 @@ class ShellWorker(BaseWorker):
     def kill(self):
         if self.current_proc and self.current_proc.returncode == None:
             # Current process have not terminate
-            self.current_proc.kill()
+            try:
+                self.current_proc.kill()
+            except ProcessLookupError:
+                # Process already got killed/completed
+                pass
 
     async def _work(self, taskQueue: RequestQueue, 
                     responseQueue: ResponseQueue):
