@@ -10,10 +10,7 @@ async def Main():
     submit tasks to them, and wait for the worker to process
     """
     # Initialize workers
-    simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                        logging.getLogger(),
-                                        "./log",
-                                        10)
+    simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup", "./log", 10)
     simpleShellManager = BaseShellManager("simpleShellManager")
     simpleShellManager.add_workergroup("shell", simpleShellWorkergroup)
     await simpleShellManager.init()
@@ -26,4 +23,5 @@ async def Main():
     # Wait til all requests are done
     await simpleShellManager.done()
 
+logging.basicConfig(level=logging.INFO)
 asyncio.run(Main())

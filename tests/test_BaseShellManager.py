@@ -22,7 +22,6 @@ class TestBaseShellManager:
     async def _test_simple_echo_setup(self, log_dir: str, num_workers: int=10):
         # Initialize workers
         simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                            logging.getLogger(),
                                             log_dir,
                                             num_workers)
         simpleShellManager = BaseShellManager("simpleShellManager")
@@ -52,7 +51,6 @@ class TestBaseShellManager:
     async def _test_save_load_setup(self, log_dir: str, num_workers: int=10, max_sleep: int=10, stop_time: float=5.5):
         # Initialize workers
         simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                            logging.getLogger(),
                                             log_dir,
                                             num_workers)
         simpleShellManager = BaseShellManager("simpleShellManager")
@@ -111,7 +109,6 @@ class TestBaseShellManager:
         async def _test_load_tasks(log_dir: str, num_workers: int=10):
             # Initialize workers
             simpleShellWorkergroup = ShellWorkerGroup("simpleShellWorkergroup",
-                                                logging.getLogger(),
                                                 log_dir,
                                                 num_workers)
             simpleShellManager = BaseShellManager("simpleShellManager")
