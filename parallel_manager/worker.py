@@ -9,13 +9,14 @@ Description:	Worker class to run commands
 
 import logging
 from datetime import datetime
-from collections import Counter
 from typing import List
 from abc import abstractmethod
 import asyncio
 from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket, BaseRequestPacket
 from .packet import RequestQueue, ResponseQueue
 from .utils import LogAdapter
+from .stats import Statistics
+import textwrap
 
 class BaseWorker:
     def __init__(self, name: str, taskQueue: RequestQueue, 
@@ -23,8 +24,6 @@ class BaseWorker:
         self.name = name
         self.create_time = datetime.now()
         self.start_time = None
-        self.processed_tasks = 0
-        self.processed_tasks_failed = 0
         self.idle = True
         self.taskQueue = taskQueue
         self.responseQueue = responseQueue
@@ -37,11 +36,14 @@ class BaseWorker:
         self.not_suspend = asyncio.Event()
         self.not_suspend.set()
 
+        # Statistics counter
+        self.stats = Statistics(processed_tasks=0,
+                                processed_tasks_failed=0)
+
     @abstractmethod
     async def _work(self, taskQueue: RequestQueue, 
               responseQueue: ResponseQueue):
         pass
-
 
     async def init(self):
         self.taskHandle = asyncio.create_task(
@@ -77,6 +79,30 @@ class BaseWorker:
         """
         await self.taskQueue.join()
 
+    def summaries(self) -> List[str]:
+        """Generate summary text for this worker in lines
+
+        Returns:
+            List[str]: lines of text
+        """
+        return self.summary().splitlines()
+
+    def summary(self) -> str:
+        """Generate summary text for this worker in a single string
+
+        Returns:
+            str: summary text
+        """
+        total = self.stats["processed_tasks"]
+        failed = self.stats["processed_tasks_failed"]
+        success = total - failed
+        result = "=" * 40
+        result += textwrap.dedent(f"""
+        {self.name}: total: {total} success: {success} failed: {failed}
+        """)
+        return result
+
+
 # TODO Add timeout?
 class ShellWorker(BaseWorker):
     """Shell command worker class
@@ -84,18 +110,23 @@ class ShellWorker(BaseWorker):
     def __init__(self, name: str, log_folder: str, taskQueue: RequestQueue, 
                  responseQueue: ResponseQueue) -> None:
         super().__init__(name, taskQueue, responseQueue)
+
         self.log_folder = log_folder
         self.logger.debug(f"[-] Log folder set to {log_folder}")
         self.current_proc = None
 
+        # Add stats
+        self.stats["total_shell_time"] = 0
+
     def kill(self):
-        if self.current_proc and self.current_proc.returncode == None:
+        if self.current_proc:
             # Current process have not terminate
             try:
                 self.current_proc.kill()
             except ProcessLookupError:
                 # Process already got killed/completed
                 pass
+        self.taskHandle.cancel()
 
     async def _work(self, taskQueue: RequestQueue, 
                     responseQueue: ResponseQueue):
@@ -148,11 +179,12 @@ class ShellWorker(BaseWorker):
             if retcode == 0:
                 self.logger.info(f"[+] job process finished successfully for {desc}")
             else:
-                self.processed_tasks_failed += 1
+                self.stats["processed_tasks_failed"] += 1
                 self.logger.error(
                     f"[!] job process exited unexpectedly for {desc} with retcode {retcode}")
             
-            self.processed_tasks += 1
+            self.stats["processed_tasks"] += 1
+            self.stats["total_shell_time"] += elapsed_time.seconds
 
             request.status = RequestStatus.FINISHED
 

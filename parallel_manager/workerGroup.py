@@ -15,9 +15,9 @@ from typing import List, Callable
 from .packet import BaseRequestPacket, ShellRequestPacket, BaseResponsePacket, RequestStatus
 from .packet import RequestQueue, ResponseQueue
 from .utils import LogAdapter
+from .stats import Statistics
 import asyncio
 import logging
-import atexit
 import os
 
 # Response handler function type and default
@@ -193,7 +193,37 @@ class BaseWorkerGroup:
     def deserialize_task(self, string:str) -> BaseRequestPacket:
         """Deserialize a line into worker group specific request packet
         """
-        raise NotImplemented
+        raise NotImplementedError
+    
+    def get_stats(self) -> Statistics:
+        stats = Statistics()
+        for worker in self.workers:
+            stats += worker.stats
+
+        stats["pending_tasks"] = self.pending_tasks_count()
+
+        return stats
+
+    def summaries(self) -> List[str]:
+        """Generate summary text for this worker in lines
+
+        Returns:
+            List[str]: lines of text
+        """
+        return self.summary().splitlines()
+
+    def summary(self) -> str:
+        """Generate summary text for this worker in a single string
+
+        Returns:
+            str: summary text
+        """
+        stats = self.get_stats()
+        result = f"{self.name}: "
+        for name, val in stats.items():
+            result = f"{result}\n\t{name}: {val}"
+
+        return result
 
 class ShellWorkerGroup(BaseWorkerGroup):
     def __init__(self, name: str, log_folder: str, num_workers: int, max_requests: int=-1, response_handler: ResponseHandlerFn=_default_response_handler) -> None:

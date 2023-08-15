@@ -25,4 +25,5 @@ async def Main():
     # Wait til all requests are done
     await simpleShellManager.done()
 
+logging.basicConfig(level=logging.INFO)
 asyncio.run(Main())

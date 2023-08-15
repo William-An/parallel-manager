@@ -67,7 +67,7 @@ Full example is at [here](./examples/example_simpleShell.py)
 ### Short-term todos
 
 1. [ ] Manager statistics plugin
-2. [ ] Manager summary when all tasks are done
+2. [x] Manager summary when all tasks are done
 3. [ ] Timeout support
 4. [ ] Status monitor, progress monitor
 5. [ ] Dump failed task/able to rerun

@@ -2,8 +2,9 @@ from __future__ import annotations
 from .packet import *
 from .workerGroup import *
 from .utils import LogAdapter
-from typing import Dict
+from typing import Dict, Callable
 import logging
+import atexit, signal
 
 class BaseWorkerGroupCollideError(Exception):
     def __init__(self, manager:BaseManager, workergroup_name:str, 
@@ -32,6 +33,7 @@ class BaseManager:
         # Register callback to save pending tasks and kill all workergroups
         atexit.register(self.save_pending)
         atexit.register(self.killall)
+        atexit.register(lambda: print(self.summary()))
 
         # TODO Create a async event loop to handle request
 
@@ -42,6 +44,8 @@ class BaseManager:
         
     async def done(self):
         await asyncio.gather(*[group.done() for _, group in self.workgroups.items()])
+        for line in self.summaries():
+            self.logger.info(line)
 
     def add_workergroup(self, name:str, workgroup: BaseWorkerGroup, force=False):
         """Add a workergroup to manager, also set default worker group to 
@@ -86,6 +90,28 @@ class BaseManager:
     def killall(self) -> None:
         for wg in self.workgroups.values():
             wg.killall()
+
+    def summaries(self) -> List[str]:
+        """Generate summary text for this worker in lines
+
+        Returns:
+            List[str]: lines of text
+        """
+        return self.summary().splitlines()
+
+    def summary(self) -> str:
+        """Generate summary text for this worker in a single string
+
+        Returns:
+            str: summary text
+        """
+        result = f"{self.name}: \n"
+        result += "=" * 40
+        for wg in self.workgroups.values():
+            result = f"{result}\n{wg.summary()}\n"
+            result += "-" * 40
+
+        return result
 
 class BaseShellManager(BaseManager):
     def __init__(self, name: str) -> None:
