@@ -68,11 +68,12 @@ Full example is at [here](./examples/example_simpleShell.py)
 
 1. [ ] Manager statistics plugin
 2. [x] Manager summary when all tasks are done
-3. [ ] Timeout support
-4. [ ] Status monitor, progress monitor
-5. [x] Dump failed task/able to rerun
-6. [x] Dump unfinished tasks when script terminates
-7. [x] Kill ongoing shells when program abort (`atexit`)
+3. [ ] Manager prefix on creation
+4. [ ] Timeout support
+5. [ ] Status monitor, progress monitor
+6. [x] Dump failed task/able to rerun
+7. [x] Dump unfinished tasks when script terminates
+8. [x] Kill ongoing shells when program abort (`atexit`)
 
 ### Long-term todos
 

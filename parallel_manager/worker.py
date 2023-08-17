@@ -12,14 +12,15 @@ from datetime import datetime
 from typing import List
 from abc import abstractmethod
 import asyncio
-from .packet import ShellRequestPacket, RequestStatus, ShellResponsePacket, BaseRequestPacket
+from .packet import RequestStatus, ShellResponsePacket, BaseRequestPacket
 from .packet import RequestQueue, ResponseQueue
 from .utils import LogAdapter
 from .stats import Statistics
 import textwrap
 
+
 class BaseWorker:
-    def __init__(self, name: str, taskQueue: RequestQueue, 
+    def __init__(self, name: str, taskQueue: RequestQueue,
                  responseQueue: ResponseQueue) -> None:
         self.name = name
         self.create_time = datetime.now()
@@ -30,7 +31,7 @@ class BaseWorker:
         self.current_request: BaseRequestPacket = None
         self.raw_logger = logging.getLogger(__name__)
         self.logger = LogAdapter(self.raw_logger, {"name": name})
-        self.logger.debug(f"[-] Creating worker")
+        self.logger.debug("[-] Creating worker")
 
         # Whether to suspend worker execution
         self.not_suspend = asyncio.Event()
@@ -41,13 +42,13 @@ class BaseWorker:
                                 processed_tasks_failed=0)
 
     @abstractmethod
-    async def _work(self, taskQueue: RequestQueue, 
-              responseQueue: ResponseQueue):
+    async def _work(self, taskQueue: RequestQueue,
+                    responseQueue: ResponseQueue):
         pass
 
     async def init(self):
         self.taskHandle = asyncio.create_task(
-        self._work(self.taskQueue, self.responseQueue), name=self.name)
+            self._work(self.taskQueue, self.responseQueue), name=self.name)
 
     def kill(self):
         """Stop worker ungracefully
@@ -107,7 +108,8 @@ class BaseWorker:
 class ShellWorker(BaseWorker):
     """Shell command worker class
     """
-    def __init__(self, name: str, log_folder: str, taskQueue: RequestQueue, 
+
+    def __init__(self, name: str, log_folder: str, taskQueue: RequestQueue,
                  responseQueue: ResponseQueue) -> None:
         super().__init__(name, taskQueue, responseQueue)
 
@@ -128,16 +130,19 @@ class ShellWorker(BaseWorker):
                 pass
         self.taskHandle.cancel()
 
-    async def _work(self, taskQueue: RequestQueue, 
+    async def _work(self, taskQueue: RequestQueue,
                     responseQueue: ResponseQueue):
         """internal function for processing request from queue
 
 
         Args:
-            taskQueue (RequestQueue): shell command request queue, first item is request description and second one is the shell command
-            responseQueue (ResponseQueue): response queue, worker should send respond to here
+            taskQueue (RequestQueue): shell command request queue, first
+                                      item is request description and
+                                      second one is the shell command
+            responseQueue (ResponseQueue): response queue, worker
+                                           should send respond to here
         """
-        # Worker 
+        # Worker
         while True:
             # Test whether worker need to be suspended
             await self.not_suspend.wait()
@@ -162,12 +167,17 @@ class ShellWorker(BaseWorker):
 
             # Launch in subprocess
             start_time = datetime.now()
-            proc = await asyncio.create_subprocess_shell(cmd, stdout=logout.fileno(), stderr=logerr.fileno())
+            proc = await asyncio.create_subprocess_shell(
+                cmd,
+                stdout=logout.fileno(),
+                stderr=logerr.fileno())
+
             self.current_proc = proc
             request.status = RequestStatus.RUNNING
 
             # Log command
-            self.logger.info(f"[-] job launched for {desc} with pid {proc.pid}")
+            self.logger.info(
+                f"[-] job launched for {desc} with pid {proc.pid}")
 
             # Waiting for cmd to finish
             retcode = await proc.wait()
@@ -177,12 +187,14 @@ class ShellWorker(BaseWorker):
             elapsed_time = end_time - start_time
 
             if retcode == 0:
-                self.logger.info(f"[+] job process finished successfully for {desc}")
+                self.logger.info(
+                    f"[+] job process finished successfully for {desc}")
             else:
                 self.stats["processed_tasks_failed"] += 1
                 self.logger.error(
-                    f"[!] job process exited unexpectedly for {desc} with retcode {retcode}")
-            
+                    f"[!] job process exited unexpectedly "
+                    f"for {desc} with retcode {retcode}")
+
             self.stats["processed_tasks"] += 1
             self.stats["total_shell_time"] += elapsed_time.seconds
 
@@ -196,7 +208,8 @@ class ShellWorker(BaseWorker):
             taskQueue.task_done()
 
             # Create response packet
-            response = ShellResponsePacket(request, retcode, elapsed_time.seconds)
+            response = ShellResponsePacket(
+                request, retcode, elapsed_time.seconds)
 
             # Send to response queue
             await responseQueue.put(response)
@@ -204,6 +217,7 @@ class ShellWorker(BaseWorker):
             # Log done
             self.logger.info(f"[+] job done for {desc}")
             self.idle = True
+
 
 # Types
 WorkerList = List[BaseWorker]

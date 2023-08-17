@@ -3,11 +3,13 @@ from asyncio import Queue
 from abc import abstractmethod
 import json
 
+
 class RequestStatus(Enum):
     CREATED = 1
     PENDING = 2
     RUNNING = 3
     FINISHED = 4
+
 
 class BaseRequestPacket:
     def __init__(self, id: int) -> None:
@@ -21,10 +23,10 @@ class BaseRequestPacket:
         Returns:
             str: packet string
         """
-        raise NotImplemented()
-    
+        raise NotImplementedError
+
     @abstractmethod
-    def deserialize(self, string:str):
+    def deserialize(self, string: str):
         """Create packet from string
 
         Args:
@@ -33,8 +35,8 @@ class BaseRequestPacket:
         Raises:
             NotImplemented: _description_
         """
-        raise NotImplemented()
-    
+        raise NotImplementedError
+
     @classmethod
     def factory(cls):
         return cls(0)
@@ -42,9 +44,11 @@ class BaseRequestPacket:
     def __str__(self) -> str:
         return self.serialize()
 
+
 class BaseResponsePacket:
     def __init__(self, req: BaseRequestPacket):
         self.req = req
+
 
 class ShellRequestPacket(BaseRequestPacket):
     def __init__(self, id: int, desc: str, cmd: str) -> None:
@@ -60,8 +64,8 @@ class ShellRequestPacket(BaseRequestPacket):
         tmp["cmd"] = self.cmd
         return json.dumps(tmp)
 
-    def deserialize(self, string:str):
-        tmp:dict = json.loads(string)
+    def deserialize(self, string: str):
+        tmp: dict = json.loads(string)
         for key in tmp.keys():
             if hasattr(self, key):
                 setattr(self, key, tmp[key])
@@ -71,12 +75,15 @@ class ShellRequestPacket(BaseRequestPacket):
     def factory(cls):
         return cls(0, "factory", "echo 0")
 
+
 class ShellResponsePacket(BaseResponsePacket):
-    def __init__(self, req: ShellRequestPacket, retcode: int, elapsed_secs: int) -> None:
+    def __init__(self, req: ShellRequestPacket, retcode: int,
+                 elapsed_secs: int) -> None:
         super().__init__(req)
         self.req: ShellRequestPacket
         self.retcode = retcode
         self.elapsed_secs = elapsed_secs
+
 
 # Common Type definitions
 # TODO: Asyncio Queue is not typing with generics?
