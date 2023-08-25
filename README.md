@@ -35,8 +35,8 @@ async def Main():
     for i in range(100):
         simpleShellManager.add_shell_request(f"echoing loop-{i}", f"echo {i}")
 
-   # Wait for the manager to finish
-   await simpleShellManager.done()
+    # Wait for the manager to finish
+    await simpleShellManager.done()
 ```
 
 Then we simply use `asyncio.run()` to run the above function:
